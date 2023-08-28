@@ -100,6 +100,6 @@ echo $arg1 > "$MYPATH/last_tag.txt"
 echo $arg1$arg2 >> "$MYPATH/all_tags.txt"
 
 #
-git commit -m "commit-$1"
-git tag -a "$1$2" -m "tag-$2"
+git commit -m "commit-$arg2"
+git tag -a "$arg1$arg2" -m "tag-$arg2"
 git push --follow-tags

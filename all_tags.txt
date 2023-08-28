@@ -5,3 +5,5 @@ mon-tag-lol-3
 mon-tag-lol-4
 mon-tag-lol-5
 exercise-assistants-my_round-1
+exercise-assistants-my_round-2
+exercise-assistants-my_round-3
