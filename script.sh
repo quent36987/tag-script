@@ -3,36 +3,33 @@
 MYPATH="/mnt/c/Users/Quentin/Desktop/S9/tag-script"
 
 trim() {
-    local var="$*"
-    var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
-    var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
-    echo -n "$var"
+  local var="$*"
+  var="${var#"${var%%[![:space:]]*}"}" # remove leading whitespace characters
+  var="${var%"${var##*[![:space:]]}"}" # remove trailing whitespace characters
+  echo -n "$var"
 }
-
 
 find_max_tag_number() {
 
-tag_prefix="$1"
-max_number=0
+  tag_prefix="$1"
+  max_number=0
 
-      while IFS='-' read -r line; do
-              tag=""
-              number=""
+  while IFS='-' read -r line; do
+    tag=""
+    number=""
 
-             tag="${line%-*}" # Extraire le tag (en supprimant le dernier segment numérique)
-             number="${line##*-}" # Extraire le numéro (en supprimant tout avant le dernier tiret)
-            number=$(trim "$number") #
-            tag="$tag-"
+    tag="${line%-*}"         # Extraire le tag (en supprimant le dernier segment numérique)
+    number="${line##*-}"     # Extraire le numéro (en supprimant tout avant le dernier tiret)
+    number=$(trim "$number") #
+    tag="$tag-"
 
-             if [[ "$tag" == "$tag_prefix" ]] && [[ "$number" =~ ^[0-9]+$ ]]  && [[ "$number" -gt "$max_number" ]]; then
-                 max_number="$number"
-             fi
-    done < "$MYPATH/all_tags.txt"
+    if [[ "$tag" == "$tag_prefix" ]] && [[ "$number" =~ ^[0-9]+$ ]] && [[ "$number" -gt "$max_number" ]]; then
+      max_number="$number"
+    fi
+  done <"$MYPATH/all_tags.txt"
 
-    echo "$max_number"
+  echo "$max_number"
 }
-
-
 
 arg1=$1
 
@@ -58,26 +55,28 @@ if [ -z "$1" ]; then
     exit 1
   fi
 
+else
+  #if the argument is not finish by - add it
+  if [[ "$arg1" != *- ]]; then
+    arg1="$arg1-"
+  fi
+
+  last_version=$(find_max_tag_number "$arg1")
+
+  # Increment the version
+  new_version=$(($last_version + 1))
+
+  # ask if the new tag is ok
+  read -p "New tag: $arg1$new_version ? (y/n) " reply
+
+  if [[ $reply =~ ^[Yy]$ ]]; then
+    echo "New tag: $arg1$new_version"
+    arg2=$new_version
   else
-    last_version=$(find_max_tag_number "$arg1")
-
-      # Increment the version
-      new_version=$(($last_version + 1))
-
-      # ask if the new tag is ok
-      read -p "New tag: $arg1$new_version ? (y/n) " reply
-
-      if [[ $reply =~ ^[Yy]$ ]]; then
-        echo "New tag: $arg1$new_version"
-        arg2=$new_version
-      else
-        echo "exit"
-        exit 1
-      fi
+    echo "exit"
+    exit 1
+  fi
 fi
-
-
-
 
 if ! git diff --cached --name-status | grep -qE '^[A|M]'; then
   echo "No file to commit"
@@ -95,9 +94,9 @@ echo "Argument supplied: $arg1 et $arg2"
 
 # stock tag and version in file
 
-echo $arg1 > "$MYPATH/last_tag.txt"
+echo $arg1 >"$MYPATH/last_tag.txt"
 # add the tag to all_tags.txt
-echo $arg1$arg2 >> "$MYPATH/all_tags.txt"
+echo $arg1$arg2 >>"$MYPATH/all_tags.txt"
 
 #
 git commit -m "commit-$arg2"
